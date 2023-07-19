@@ -45,6 +45,7 @@ public class GameManager : MonoBehaviour
     public Button decreaseButton;
     public Button playButton;
     public TMP_Dropdown m_Dropdown;
+    public Button infoButton;
     private bool buttonSwitch = false;
 
 
@@ -329,6 +330,7 @@ public class GameManager : MonoBehaviour
             decreaseButton.enabled = false;
             playButton.enabled = false;
             m_Dropdown.enabled = false;
+            infoButton.enabled = false;
             buttonSwitch= true;
         }
         else
@@ -337,6 +339,7 @@ public class GameManager : MonoBehaviour
             decreaseButton.enabled = true;
             playButton.enabled = true;
             m_Dropdown.enabled = true;
+            infoButton.enabled = true;
             buttonSwitch = false;
         }
         

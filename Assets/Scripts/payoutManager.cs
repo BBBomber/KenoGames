@@ -38,7 +38,7 @@ public class payoutManager : MonoBehaviour
     public Button decreaseButton;
     public Button increaseButton;
 
-    
+    private int[] EggMultipliers = new int[3];
     
     private void Awake()
     {
@@ -53,6 +53,10 @@ public class payoutManager : MonoBehaviour
         PayoutDictionary.Add(8,  new int[] { 0, 0, 0, 2, 12, 98, 1652, 10000 });
         PayoutDictionary.Add(9,  new int[] { 0, 0, 0, 1, 6, 44, 335, 4700, 10000 });
         PayoutDictionary.Add(10, new int[] { 0, 0, 0, 0, 0, 5, 24, 142, 1000, 45000 });
+
+        EggMultipliers[0] = 1;
+        EggMultipliers[1] = 4;
+        EggMultipliers[2] = 8;
 
         textArray[0] = text1;
         textArray[1] = text2;
@@ -80,16 +84,18 @@ public class payoutManager : MonoBehaviour
     // Update is called once per frame
 
 
-    public void DecidePayout(int SelectedAmount, int MatchedAmount)
+    public void DecidePayout(int SelectedAmount, int MatchedAmount, int HatchedEggs)
     {
         if(MatchedAmount < 0)
         {
             MatchedAmount= 0;
         }
+        if(HatchedEggs < 0) { HatchedEggs= 0; }
         int multiplier;
         int[] temp = PayoutDictionary[SelectedAmount];
         multiplier = temp[MatchedAmount];
         winAmount= betAmount * multiplier;
+        winAmount= EggMultipliers[HatchedEggs] * winAmount;
         credits += winAmount;
         SetWinText();
         SetCredits(credits);

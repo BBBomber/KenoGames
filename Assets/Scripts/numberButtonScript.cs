@@ -10,8 +10,10 @@ public class numberButtonScript : MonoBehaviour
     public Color selected; //2
     public Color matched; //3
     public Color notMatched; //4
+    public Color DinoEgg; //5
+    public Color Dino; //6
 
-    private int state = 1;
+    public int state = 1;
 
     private Image image;
 
@@ -88,23 +90,33 @@ public class numberButtonScript : MonoBehaviour
             state = 3;
             image.color = matched;
         }
+
+        else if(state == 5)
+        {
+            state = 6;
+            image.color = Dino;
+        }
     }
 
     public void Reset()
     {
-        if (state == 4)
+        if (state == 4 || state == 5 || state == 6) // Update the condition to include states 5 and 6
         {
             state = 1;
             image.color = notSelected;
+            Debug.Log("dino egg reset"); // Add a debug log to indicate the reset of the dino egg
         }
-
-        if (state == 3)
+        else if (state == 3)
         {
             state = 2;
             image.color = selected;
         }
     }
 
-    
+    public void SetEgg()
+    {
+        state = 5;
+        image.color = DinoEgg;
+    }
 
 }

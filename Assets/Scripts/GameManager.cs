@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -30,12 +30,13 @@ public class GameManager : MonoBehaviour
 
     //number of matches a player gets in a game
     private int matchedAmount = 0;
+    private int hatchedEggs = 0;
 
     private Dictionary<int, GameObject> prefabDictionary = new Dictionary<int, GameObject>();
 
     private Coroutine functionCallCoroutine;
 
-    public float interval = 0.5f;
+    public float interval = 0.2f;
 
     private int currentIndex = 0;
 
@@ -47,6 +48,8 @@ public class GameManager : MonoBehaviour
     public TMP_Dropdown m_Dropdown;
     public Button infoButton;
     private bool buttonSwitch = false;
+
+    private List<int> selectedEggList = new List<int>();
 
 
     void Awake()
@@ -194,7 +197,9 @@ public class GameManager : MonoBehaviour
         //Cursor.lockState = CursorLockMode.Locked;
         gameState.MouseSwitch();
         ButtonSwitch();
-        
+
+        SpawnEggs();
+
         gameState.PayoutManager.GameStart();
 
         
@@ -202,12 +207,13 @@ public class GameManager : MonoBehaviour
         pickedNumbersArray = CreateArrayFromDictionary(prefabDictionary, 20);
 
         matchedAmount = CompareArrayAndQueue(pickedNumbersArray, selectedNumbersQueue);
+        hatchedEggs = CompareArrayAndList(pickedNumbersArray, selectedEggList);
 
         functionCallCoroutine = StartCoroutine(CallFunctionPeriodically());
 
         //move this to after coroutine stops
 
-        gameState.PayoutManager.DecidePayout(selectedNumbersQueue.Count, matchedAmount -1);
+        gameState.PayoutManager.DecidePayout(selectedNumbersQueue.Count, matchedAmount -1, hatchedEggs -1);
         Debug.Log(matchedAmount.ToString());
     }
 
@@ -241,6 +247,21 @@ public class GameManager : MonoBehaviour
     }
 
     private int CompareArrayAndQueue(int[] arr, Queue<int> q)
+    {
+        int commonElements = 0;
+
+        foreach (int element in q)
+        {
+            if (System.Array.IndexOf(arr, element) >= 0)
+            {
+                commonElements++;
+            }
+        }
+
+        return commonElements;
+    }
+
+    private int CompareArrayAndList(int[] arr, List<int> q)
     {
         int commonElements = 0;
 
@@ -301,6 +322,7 @@ public class GameManager : MonoBehaviour
     public void ResetGame()
     {
         int index = 0;
+        int EggDex = 0;
         while (index < pickedNumbersArray.Length)
         {
             int currentInstanceID = pickedNumbersArray[index];
@@ -312,6 +334,20 @@ public class GameManager : MonoBehaviour
 
             index++;
         }
+        while (EggDex < selectedEggList.Count)
+        {
+            int currentInstanceID = selectedEggList[EggDex];
+            if (prefabDictionary.TryGetValue(currentInstanceID, out GameObject gameObject))
+            {
+                // Call a function on the game object using the instance ID
+                gameObject.GetComponent<numberButtonScript>().Reset();
+            }
+
+            EggDex++;
+        }
+
+
+
         currentIndex = 0;
         pickedNumbersArray= null;
         //Cursor.lockState = CursorLockMode.None;
@@ -353,6 +389,47 @@ public class GameManager : MonoBehaviour
 
         
 
+    }
+
+    private void SpawnEggs()
+    {
+
+        selectedEggList.Clear();
+
+        // Get all the instance IDs from the prefab dictionary
+        var allInstanceIDs = prefabDictionary.Keys.ToList();
+
+        // Exclude the instance IDs present in the selectedNumbersQueue
+        var availableInstanceIDs = allInstanceIDs.Except(selectedNumbersQueue).ToList();
+
+        // Check if we have enough available instance IDs to spawn 3 eggs
+        if (availableInstanceIDs.Count >= 3)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                int randomIndex = Random.Range(0, availableInstanceIDs.Count);
+                int selectedEggInstanceID = availableInstanceIDs[randomIndex];
+                selectedEggList.Add(selectedEggInstanceID);
+                availableInstanceIDs.RemoveAt(randomIndex);
+            }
+
+            // Change the color of the numberPrefabs corresponding to the selected egg instance IDs
+            foreach (int selectedEggInstanceID in selectedEggList)
+            {
+                if (prefabDictionary.TryGetValue(selectedEggInstanceID, out GameObject eggGameObject))
+                {
+                    numberButtonScript scriptComponent = eggGameObject.GetComponent<numberButtonScript>();
+                    if (scriptComponent != null)
+                    {
+                        scriptComponent.SetEgg();
+                    }
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Not enough available instance IDs to spawn 3 eggs!");
+        }
     }
     
 }
